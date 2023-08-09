@@ -1,2 +1,5 @@
 *.csproj
+*.sln
 obj
+.vscode
+bin
