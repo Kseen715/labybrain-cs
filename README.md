@@ -5,3 +5,6 @@
 
 ## Description
 Labybrain-CS is a C# interface implementation of the [Labybrain](https://github.com/Kseen715/labybrain) project.
+
+## Dependencies
+- [pythonnet](https://github.com/pythonnet/pythonnet) >= 3.0.1
