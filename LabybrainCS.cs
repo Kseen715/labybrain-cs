@@ -17,7 +17,11 @@ namespace LabybrainCS
 
         public static int PyInitialize(string pathToPythonDll)
         {
-            // set the path to the python dll
+            /// <summary>
+            /// Initializes the python engine
+            /// </summary>
+            /// <param name="pathToPythonDll">The path to the python dll</param>
+            /// <returns>1 if successful, 0 if not</returns>
             // TODO: make this path relative
             try
             {
@@ -94,41 +98,62 @@ namespace LabybrainCS
                 return 0;
             }
         }
-        static void Main(string[] args)
+
+        public static T PyCast<T>(dynamic py_obj)
         {
-            PyInitialize("python311.dll");
-            PyChDir("labybrain");
-            var lb = PyImport("labybrain.py");
-            List<int> res = new();
+            /// <summary>
+            /// Casts a python object to an T
+            /// </summary>
+            /// <param name="py_obj_int">The python object to cast</param>
+            /// <returns>The casted T</returns>
             try
             {
+                T res;
                 using (Py.GIL())
                 {
-                    lb.load_config();
-                    lb.load_model_callback("0004", 1);
-                    for (int i = 0; i < 50; i++)
-                    {
-                        dynamic result = lb.predict_callback(0);
-                        // FIXME: this looks awful AF + it's very unsafe
-                        // but works for now
-                        string action = result.ToString();
-                        int action_int = int.Parse(action);
-                        res.Add(action_int);
-                    }
-                    Console.WriteLine();
-                    // lb.EXIT();
+                    res = (T)py_obj;
                 }
+                return res;
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error: {0}", e);
+                throw;
             }
-            PythonEngine.Shutdown();
-            PrintList(res);
+        }
 
+        public static List<T> PyCastList<T>(dynamic py_obj)
+        {
+            /// <summary>
+            /// Casts a python object to an List< T>
+            /// </summary>
+            /// <param name="py_obj_int">The python object to cast</param>
+            /// <returns>The casted List< T></returns>
+            try
+            {
+                List<T> res = new();
+                using (Py.GIL())
+                {
+                    foreach (var item in py_obj)
+                    {
+                        res.Add((T)item);
+                    }
+                }
+                return res;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: {0}", e);
+                throw;
+            }
         }
         public static void PrintList<T>(this IEnumerable<T> list)
         {
+            /// <summary>
+            /// Prints a list to the console
+            /// </summary>
+            /// <param name="list">The list to print</param>
+            /// <returns>void</returns>
             System.Console.Write("[");
             for (int i = 0; i < list.Count(); i++)
             {
@@ -140,6 +165,37 @@ namespace LabybrainCS
             }
             System.Console.Write("]");
         }
-    }
 
+        static void Main(string[] args)
+        {
+            // Initialize the python engine
+            PyInitialize("python311.dll");
+            // Change the current working directory to the labybrain folder
+            PyChDir("labybrain");
+
+            // Import the labybrain module
+            var lb = PyImport("labybrain.py");
+
+            dynamic py_res;
+            try
+            {
+                // This part will be executed in python
+                using (Py.GIL())
+                {
+                    lb.load_config();
+                    lb.load_model_callback("0004", 1);
+                    py_res = lb.predict_callback_mult(1000, 0);
+                }
+
+                PrintList(PyCastList<int>(py_res));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: {0}", e);
+            }
+
+            // Shutdown the python engine
+            PythonEngine.Shutdown();
+        }
+    }
 }
