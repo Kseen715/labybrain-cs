@@ -1,7 +1,47 @@
+// =============================================================================
+// 
+// Kseen715, 2023
+// 
+// This module wraps around the python module labybrain.py and provides a
+// simple interface to use it in C#.
+//
+// Links:
+//     labybrain - https://github.com/Kseen715/labybrain
+//
+// =============================================================================
+
+
+
+// =============================================================================
+//
+// Define one of this things to enable the corresponding log level:
+//     LBCS_DEBUG   - Enables debug logs and all logs below
+//     LBCS_INFO    - Enables info logs and all logs below
+//     LBCS_WARNING - Enables warning logs and all logs below
+//     LBCS_ERROR   - Enables error logs only
+//     ~nothing~    - No logs
+//
+#if !LBCS_DEBUG
+#define LBCS_DEBUG
+#endif // !LBCS_DEBUG
+//
+#if !LBCS_INFO
+#define LBCS_INFO
+#endif // !LBCS_INFO
+//
+#if !LBCS_WARNING
+#define LBCS_WARNING
+#endif // !LBCS_WARNING
+//
+#if !LBCS_ERROR
+#define LBCS_ERROR
+#endif // !LBCS_ERROR
+//
+// =============================================================================
+
 using System;
 using Python.Runtime;
 using System.Text.Json;
-// using static Logger;
 
 namespace LabybrainCS
 {
@@ -16,8 +56,7 @@ namespace LabybrainCS
             public readonly static int QUIET = 4;
         }
 
-        public static int PyInitialize(string pathToPythonDll,
-            int log_level = 1)
+        public static int PyInitialize(string pathToPythonDll)
         {
             /// <summary>
             /// Initializes the python engine
@@ -29,23 +68,25 @@ namespace LabybrainCS
             {
                 Runtime.PythonDLL = pathToPythonDll;
                 PythonEngine.Initialize();
-                if (log_level <= LogMode.INFO)
-                {
-                    Logger.LogInfo("Initialized python engine");
-                }
+
+#if LBCS_DEBUG || LBCS_INFO
+                Logger.LogInfo("Initialized python engine");
+#endif // LBCS_DEBUG || LBCS_INFO
+
                 return 1;
             }
             catch (Exception e)
             {
-                if (log_level <= LogMode.ERROR)
-                {
-                    Logger.LogError(e.ToString());
-                }
+
+#if LBSC_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+                Logger.LogError(e.ToString());
+#endif // LBSC_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
                 return 0;
             }
         }
 
-        public static int PyShutdown(int log_level = 1)
+        public static int PyShutdown()
         {
             /// <summary>
             /// Shuts down the python engine
@@ -54,23 +95,25 @@ namespace LabybrainCS
             try
             {
                 PythonEngine.Shutdown();
-                if (log_level <= LogMode.INFO)
-                {
-                    Logger.LogInfo("Shut down python engine");
-                }
+
+#if LBCS_DEBUG || LBCS_INFO
+                Logger.LogInfo("Shut down python engine");
+#endif // LBCS_DEBUG || LBCS_INFO
+
                 return 1;
             }
             catch (Exception e)
             {
-                if (log_level <= LogMode.ERROR)
-                {
-                    Logger.LogError(e.ToString());
-                }
+
+#if LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+                Logger.LogError(e.ToString());
+#endif // LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
                 return 0;
             }
         }
 
-        public static dynamic PyImport(string filePath, int log_level = 1)
+        public static dynamic PyImport(string filePath)
         {
             /// <summary>
             /// Imports a python module from a given file path
@@ -101,20 +144,25 @@ namespace LabybrainCS
                     module = Py.Import(
                         Path.GetFileNameWithoutExtension(filePath));
                 }
-                if (log_level <= LogMode.INFO)
-                {
-                    Logger.LogInfo("Imported module \"" + filePath + "\"");
-                }
+
+#if LBCS_DEBUG || LBCS_INFO
+                Logger.LogInfo("Imported module \"" + filePath + "\"");
+#endif // LBCS_DEBUG || LBCS_INFO
+
                 return module;
             }
             catch (Exception e)
             {
+
+#if LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
                 Logger.LogError(e.ToString());
+#endif // LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
                 return 0;
             }
         }
 
-        public static int PyChDir(string dir, int log_level = 1)
+        public static int PyChDir(string dir)
         {
             /// <summary>
             /// Changes the current working directory to the given directory
@@ -132,15 +180,16 @@ namespace LabybrainCS
             }
             catch (Exception e)
             {
-                if (log_level <= LogMode.ERROR)
-                {
-                    Logger.LogError(e.ToString());
-                }
+
+#if LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+                Logger.LogError(e.ToString());
+#endif // LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
                 return 0;
             }
         }
 
-        public static T PyCast<T>(dynamic py_obj, int log_level = 1)
+        public static T PyCast<T>(dynamic py_obj)
         {
             /// <summary>
             /// Casts a python object to an T
@@ -158,15 +207,16 @@ namespace LabybrainCS
             }
             catch (Exception e)
             {
-                if (log_level <= LogMode.ERROR)
-                {
-                    Logger.LogError(e.ToString());
-                }
+
+#if LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+                Logger.LogError(e.ToString());
+#endif // LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
                 throw;
             }
         }
 
-        public static List<T> PyCastList<T>(dynamic py_obj, int log_level = 1)
+        public static List<T> PyCastList<T>(dynamic py_obj)
         {
             /// <summary>
             /// Casts a python object to an List< T>
@@ -187,10 +237,11 @@ namespace LabybrainCS
             }
             catch (Exception e)
             {
-                if (log_level <= LogMode.ERROR)
-                {
-                    Logger.LogError(e.ToString());
-                }
+
+#if LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+                Logger.LogError(e.ToString());
+#endif // LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
                 throw;
             }
         }
@@ -205,16 +256,16 @@ namespace LabybrainCS
             for (int i = 0; i < list.Count(); i++)
             {
                 System.Console.Write(list.ElementAt(i));
-                if (i < list.Count() - 1)
-                {
-                    System.Console.Write(", ");
-                }
+                System.Console.Write(
+                    new string(',', Convert.ToInt32(i < list.Count() - 1)) +
+                    new string(' ', Convert.ToInt32(i < list.Count() - 1))
+                    );
             }
             System.Console.Write("]\n");
         }
 
 
-        public static Dictionary<string, float> LoadConfig(int log_level = 1)
+        public static Dictionary<string, float> LoadConfig()
         {
             /// <summary>
             /// Loads the config from the config file
@@ -224,23 +275,22 @@ namespace LabybrainCS
             try
             {
                 string json = File.ReadAllText("labybrain/config.json");
-                if (!string.IsNullOrEmpty(json))
-                {
-                    res = JsonSerializer
+                res = JsonSerializer
                     .Deserialize<Dictionary<string, float>>(json)
                     ?? new Dictionary<string, float>();
-                }
-                if (log_level <= LogMode.INFO)
-                {
-                    Logger.LogInfo("Loaded config");
-                }
+
+#if LBCS_DEBUG || LBCS_INFO
+                Logger.LogInfo("Loaded config");
+#endif // LBCS_DEBUG || LBCS_INFO
+
             }
             catch (Exception e)
             {
-                if (log_level <= LogMode.ERROR)
-                {
-                    Logger.LogError(e.ToString());
-                }
+
+#if LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+                Logger.LogError(e.ToString());
+#endif // LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
             }
             return res;
         }
@@ -266,8 +316,7 @@ namespace LabybrainCS
             System.Console.WriteLine("}");
         }
 
-        public static void SaveConfig(Dictionary<string, float> dict,
-            int log_level = 1)
+        public static void SaveConfig(Dictionary<string, float> dict)
         {
             /// <summary>
             /// Saves the config from a dictionary
@@ -278,21 +327,23 @@ namespace LabybrainCS
             {
                 string json = JsonSerializer.Serialize(dict);
                 File.WriteAllText("labybrain/config.json", json);
-                if (log_level <= LogMode.INFO)
-                {
-                    Logger.LogInfo("Saved config");
-                }
+
+#if LBCS_DEBUG || LBCS_INFO
+                Logger.LogInfo("Saved config");
+#endif // LBCS_DEBUG || LBCS_INFO
+
             }
             catch (Exception e)
             {
-                if (log_level <= LogMode.ERROR)
-                {
-                    Logger.LogError(e.ToString());
-                }
+
+#if LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+                Logger.LogError(e.ToString());
+#endif // LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
             }
         }
 
-        public static void SmollMain(int log_level = 1)
+        public static void SmollMain()
         {
             Dictionary<string, float> res = LoadConfig();
             // PrintDictionary(res);
@@ -330,17 +381,20 @@ namespace LabybrainCS
                 // This part will be executed in python
                 using (Py.GIL())
                 {
-                    lb.load_config(log_level);
-                    lb.load_model_callback("0004", log_level);
-                    py_res = lb.predict_callback_mult(100, log_level);
+                    lb.load_config();
+                    lb.load_model_callback("0004");
+                    py_res = lb.predict_callback_mult(100);
                 }
 
                 PrintList(PyCastList<int>(py_res));
             }
             catch (Exception e)
             {
-                if (log_level <= LogMode.ERROR)
-                    Logger.LogError(e.ToString());
+
+#if LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+                Logger.LogError(e.ToString());
+#endif // LBCS_DEBUG || LBCS_INFO || LBCS_WARNING || LBCS_ERROR
+
             }
 
             // Shutdown the python engine
@@ -348,7 +402,7 @@ namespace LabybrainCS
         }
         static void Main(string[] args)
         {
-            SmollMain(LogMode.INFO);
+            SmollMain();
         }
     }
 }
