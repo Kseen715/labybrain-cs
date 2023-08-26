@@ -1,5 +1,4 @@
 # Labybrain-CS
-![LOC](https://img.shields.io/tokei/lines/github/Kseen715/labybrain-cs)
 <p align="center">
   <img src="https://raw.githubusercontent.com/Kseen715/imgs/main/favicon.ico" />
 </p>
